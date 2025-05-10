@@ -40,8 +40,11 @@ app.post("/registrar", (req, res) => {
 });
 
 // ✅ Ruta: Acceder
+
 app.post("/acceder", (req, res) => {
   const { correo, contrasena } = req.body;
+
+  console.log("🔍 Intento de acceso:", req.body); // <<-- Asegúrate de que llegan bien
 
   const consulta = "SELECT * FROM usuarios WHERE correo = ? AND contrasena = ?";
   BaseDeDatos.query(consulta, [correo, contrasena], (err, data) => {
@@ -51,9 +54,9 @@ app.post("/acceder", (req, res) => {
     }
 
     if (data.length > 0) {
-      return res.status(200).json("Exito, yay!");
+      return res.status(200).json({ status: "ok", mensaje: "Exito, yay!" });
     } else {
-      return res.status(401).json("Oh, Dios... Algo ha fallado...");
+      return res.status(401).json({ status: "fail", mensaje: "Correo o contraseña incorrectos" });
     }
   });
 });
