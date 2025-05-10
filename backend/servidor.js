@@ -84,35 +84,38 @@ app.post("/registrar", (req, res) => {
 });
 
 // ✅ Ruta: Acceder
-
 app.post("/acceder", (req, res) => {
   const { correo, contrasena } = req.body;
+
+  console.log("🔍 Intento de acceso:", req.body);
 
   const consulta = "SELECT * FROM usuarios WHERE correo = ?";
   BaseDeDatos.query(consulta, [correo], (err, data) => {
     if (err) {
       console.error("❌ Error en login:", err);
-      return res.status(500).json("error, llamen a Dios");
+      return res.status(500).json("Error interno en el servidor");
     }
 
     if (data.length > 0) {
-      EncriptaditaAyylmao.compare(contrasena, data[0].contrasena)
-        .then(coinciden => {
-          if (coinciden) {
-            return res.status(200).json({ status: "ok", mensaje: "Exito, yay!" });
-          } else {
-            return res.status(401).json({ status: "fail", mensaje: "Correo o contraseña incorrectos" });
-          }
-        })
-        .catch(err => {
-          console.error("❌ Error al comparar:", err);
-          return res.status(500).json({ mensaje: "Fallo al verificar contraseña" });
-        });
+      // Comparar contraseña encriptada
+      const bcrypt = require("bcrypt");
+      bcrypt.compare(contrasena, data[0].contrasena, (err, result) => {
+        if (result) {
+          return res.status(200).json({
+            status: "ok",
+            mensaje: "Exito, yay!",
+            nombre: data[0].nombre  // 👈 devuelve el nombre
+          });
+        } else {
+          return res.status(401).json({ status: "fail", mensaje: "Contraseña incorrecta" });
+        }
+      });
     } else {
-      return res.status(401).json({ status: "fail", mensaje: "Correo o contraseña incorrectos" });
+      return res.status(401).json({ status: "fail", mensaje: "Correo no encontrado" });
     }
   });
 });
+
 
 // ✅ Servidor corriendo
 app.listen(8082, () => {
